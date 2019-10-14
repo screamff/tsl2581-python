@@ -101,7 +101,7 @@ M5C = 0x0000  # 0.00000 * 2^LUX_SCALE
 # ---------------------------------------------------
 
 
-class TSl2581():
+class TSL2581():
     def __init__(self, channel, I2C_addr):
         self.channel = channel
         self.I2C_addr = I2C_addr
@@ -116,11 +116,12 @@ class TSl2581():
     def power_off(self):
         self.Write8(COMMAND_CMD | CONTROL, CONTROL_POWEROFF)
 
-    def config(self):
+    def config(self, gain_size=GAIN_16X):
+        """gain_size参数设置倍数，越大，测量范围越小, default=GAIN_16X"""
         self.Write8(COMMAND_CMD | TIMING, INTEGRATIONTIME_400MS)
         self.Write8(COMMAND_CMD | CONTROL, ADC_EN | CONTROL_POWERON)
         self.Write8(COMMAND_CMD | INTERRUPT, INTR_INTER_MODE)
-        self.Write8(COMMAND_CMD | ANALOG, GAIN_16X)
+        self.Write8(COMMAND_CMD | ANALOG, gain_size)
 
     def read_channel(self):
         low = self.bus.read_byte_data(self.I2C_addr, COMMAND_CMD | TRANSACTION | DATA0LOW)
@@ -135,6 +136,7 @@ class TSl2581():
     def calculateLux(self, iGain=2, tIntCycles=148):
         """Arguments: unsigned int iGain - gain, where 0:1X, 1:8X, 2:16X, 3:128X
         unsigned int tIntCycles - INTEG_CYCLES defined in Timing Register
+        iGain参数需要与增益倍数一致
         """
         if (tIntCycles == NOM_INTEG_CYCLE):
             chScale0 = 65536
@@ -187,12 +189,12 @@ class TSl2581():
 
 
 if __name__ == '__main__':
-    sensor = TSl2581(1, 0x39)
+    sensor = TSL2581(1, 0x39)
     sensor.power_on()
     time.sleep(2)
-    sensor.config()
+    sensor.config(gain_size=GAIN_1X)
     for i in range(100):
-        sensor.read_channel()
-        sensor.calculateLux()
         time.sleep(0.5)
+        sensor.read_channel()
+        sensor.calculateLux(iGain=0)
     sensor.power_off()
