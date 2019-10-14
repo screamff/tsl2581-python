@@ -17,8 +17,9 @@ from tsl2581 import TSl2581
 sensor = TSl2581(1, 0x39)
 sensor.power_on()
 time.sleep(2)
-sensor.config()
+sensor.config(gain_size=GAIN_1X)  # 参数需要与下面的caculateLux对应
 # 读取数据
 sensor.read_channel()
-data = sensor.calculateLux()
-```
+data = sensor.calculateLux(iGain=0)
+# gain_size与iGain对应关系为：
+# gain_size=GAIN_1X,iGain=0 | gain_size=GAIN_8X,iGain=1 | gain_size=GAIN_16X,iGain=2
